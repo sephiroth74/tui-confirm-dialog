@@ -1,5 +1,5 @@
 [package]
-name = "tui_input_dialog"
+name = "tui_confirm_dialog"
 version = "0.1.0"
 edition = "2021"
 authors = ["Alessandro Crugnola <alessandro.crugnola@swisscom.com>"]
