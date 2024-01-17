@@ -1,10 +1,10 @@
 [package]
 name = "tui_confirm_dialog"
-version = "0.1.3"
+version = "0.1.4"
 edition = "2021"
 authors = ["Alessandro Crugnola <alessandro.crugnola@swisscom.com>"]
 repository = "https://github.com/sephiroth74/tui-confirm-dialog"
-description = "Ratatui confirm dialog"
+description = "Ratatui dialogs"
 license = "MIT"
 readme = "./README.md"
 
@@ -22,4 +22,8 @@ once_cell = "1.19.0"
 
 [[example]]
 name = "confirm"
+required-features = ["crossterm"]
+
+[[example]]
+name = "popup"
 required-features = ["crossterm"]

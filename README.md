@@ -4,8 +4,16 @@
 
 Confirm dialog widget for ratatui
 
-# Example:
+# Examples
+
+## Confirm
 
     cargo run --example confirm
 
 ![](./examples/confirm.gif "Demo")
+
+## Popup
+
+    cargo run --example popup
+
+![](./examples/popup.gif "Demo")

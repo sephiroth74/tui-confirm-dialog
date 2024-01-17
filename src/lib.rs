@@ -1,14 +1,16 @@
 #![doc = include_str!("../README.md")]
 
+use ratatui::layout::Alignment;
 use std::sync::mpsc::Sender;
 
 use ratatui::style::{Color, Style};
 use ratatui::text::Text;
 use ratatui::widgets::block::Title;
-use ratatui::widgets::{BorderType, Borders};
+use ratatui::widgets::{BorderType, Borders, Padding};
 
+mod confirm_dialog;
 pub mod helper;
-mod impls;
+mod popup_message;
 mod test;
 
 pub type Listener = (u16, Option<bool>);
@@ -41,4 +43,18 @@ pub struct ConfirmDialog {
 	pub(crate) borders: Borders,
 	pub(crate) border_type: BorderType,
 	pub(crate) border_style: Style,
+}
+
+#[derive(Debug, Default)]
+pub struct PopupMessage<'a, 'b> {
+	pub(crate) bg: Color,
+	pub(crate) borders: Borders,
+	pub(crate) border_type: BorderType,
+	pub(crate) border_style: Style,
+	pub(crate) text_alignment: Alignment,
+	pub(crate) title_alignment: Alignment,
+	pub(crate) text_style: Style,
+	pub(crate) padding: Padding,
+	pub(crate) title: Title<'a>,
+	pub(crate) message: Text<'b>,
 }
