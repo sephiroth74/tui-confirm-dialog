@@ -8,7 +8,7 @@ use crossterm::{
 use ratatui::text::{Line, Span};
 use ratatui::{prelude::*, widgets::*};
 
-use tui_input_dialog::{ButtonLabel, ConfirmDialog, ConfirmDialogState, Listener};
+use tui_confirm_dialog::{ButtonLabel, ConfirmDialog, ConfirmDialogState, Listener};
 
 struct App {
 	close_status: Option<String>,
