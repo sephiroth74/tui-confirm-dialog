@@ -2,6 +2,7 @@
 # To run this script, install vhs and run `vhs ./examples/barchart.tape`
 Output "examples/confirm.gif"
 Set Theme "Aardvark Blue"
+Set WindowBar Colorful
 Set Width 1200
 Set Height 800
 Hide
