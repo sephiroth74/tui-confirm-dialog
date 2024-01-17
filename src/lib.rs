@@ -1,20 +1,26 @@
 #![doc = include_str!("../README.md")]
 
-pub mod helper;
-mod impls;
+use std::sync::mpsc::Sender;
 
 use ratatui::style::{Color, Style};
 use ratatui::text::Text;
 use ratatui::widgets::block::Title;
 use ratatui::widgets::{BorderType, Borders};
-use std::sync::mpsc::Sender;
+
+pub mod helper;
+mod impls;
+mod test;
 
 pub type Listener = (u16, Option<bool>);
+
+#[derive(Debug, Copy, Clone)]
+pub struct TryFromSliceError;
 
 #[derive(Debug, Clone)]
 pub struct ButtonLabel {
 	pub(crate) label: String,
 	pub(crate) control: char,
+	pub(crate) style: Style,
 }
 
 #[derive(Debug)]

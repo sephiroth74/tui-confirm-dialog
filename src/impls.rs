@@ -1,19 +1,36 @@
+use core::fmt;
+use std::error::Error;
+use std::fmt::Display;
 use std::sync::mpsc::Sender;
 
 #[cfg(feature = "crossterm")]
 use crossterm::event::{KeyCode, KeyEvent, KeyEventKind};
+use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 use rand::random;
 use ratatui::buffer::Buffer;
 use ratatui::layout::{Alignment, Constraint, Layout, Rect};
 use ratatui::prelude::{Direction, Style, Text};
 use ratatui::style::{Color, Stylize};
-use ratatui::text::Span;
 use ratatui::widgets::block::Title;
 use ratatui::widgets::{Block, BorderType, Borders, Clear, Padding, Paragraph, StatefulWidget, Widget, Wrap};
+use regex::Regex;
 
-use crate::{ButtonLabel, ConfirmDialog, ConfirmDialogState, Listener};
+use crate::{ButtonLabel, ConfirmDialog, ConfirmDialogState, Listener, TryFromSliceError};
 
 impl ButtonLabel {
+	pub const YES: Lazy<ButtonLabel> = Lazy::new(|| ButtonLabel {
+		label: "(Y)es".to_string(),
+		control: 'y',
+		style: Style::new().yellow(),
+	});
+
+	pub const NO: Lazy<ButtonLabel> = Lazy::new(|| ButtonLabel {
+		label: "(N)o".to_string(),
+		control: 'n',
+		style: Style::default(),
+	});
+
 	pub fn new<S>(label: S, control: char) -> Self
 	where
 		S: Into<String>,
@@ -21,11 +38,62 @@ impl ButtonLabel {
 		ButtonLabel {
 			label: label.into(),
 			control,
+			style: Style::default(),
 		}
 	}
 
+	pub fn from<S>(label: S) -> Result<Self, TryFromSliceError>
+	where
+		S: Into<String>,
+	{
+		label.into().as_str().try_into()
+	}
+
 	pub fn len(&self) -> usize {
-		self.label.len()
+		self.label.len() + 2
+	}
+
+	pub fn with_style(mut self, style: Style) -> Self {
+		self.style = style;
+		self
+	}
+}
+
+impl TryFrom<&str> for ButtonLabel {
+	type Error = TryFromSliceError;
+
+	fn try_from(value: &str) -> Result<Self, Self::Error> {
+		if value.is_empty() {
+			return Err(TryFromSliceError);
+		}
+
+		lazy_static! {
+			static ref RE: Regex = Regex::new(r#"(\(\w\))"#).unwrap();
+		}
+
+		if let Some(result) = RE.find(value) {
+			let control_char = value.chars().nth(result.start() + 1).unwrap();
+			Ok(ButtonLabel {
+				label: value.to_string(),
+				control: control_char.to_ascii_lowercase(),
+				style: Style::default(),
+			})
+		} else {
+			let char = value.chars().nth(0).unwrap();
+			let label = format!("({char}){}", &value[1..]);
+
+			Ok(ButtonLabel {
+				label,
+				control: char.to_ascii_lowercase(),
+				style: Style::default(),
+			})
+		}
+	}
+}
+
+impl<'a> Into<Text<'a>> for ButtonLabel {
+	fn into(self) -> Text<'a> {
+		Text::styled(self.label, self.style)
 	}
 }
 
@@ -83,13 +151,19 @@ impl ConfirmDialogState {
 		self
 	}
 
-	pub fn with_yes_button(mut self, label: ButtonLabel) -> Self {
-		self.yes_button = label;
+	pub fn with_yes_button<B>(mut self, label: B) -> Self
+	where
+		B: Into<ButtonLabel>,
+	{
+		self.yes_button = label.into();
 		self
 	}
 
-	pub fn with_no_button(mut self, label: ButtonLabel) -> Self {
-		self.no_button = Some(label);
+	pub fn with_no_button<B>(mut self, label: B) -> Self
+	where
+		B: Into<ButtonLabel>,
+	{
+		self.no_button = Some(label.into());
 		self
 	}
 
@@ -176,31 +250,7 @@ impl ConfirmDialog {
 	}
 
 	fn button_paragraph(button: &ButtonLabel) -> Paragraph {
-		let label = &button.label;
-		let control_char = button.control;
-
-		if label.len() > 1 {
-			let control_char = control_char.to_string().to_lowercase();
-			let splitted = label.to_lowercase().find(&control_char).unwrap();
-
-			let mut spans = vec![];
-			let (first, second) = label.split_at(splitted);
-
-			if first.len() > 0 {
-				spans.push(Span::styled(first, Style::new().yellow()));
-			}
-
-			if second.len() == 1 {
-				spans.push(Span::styled(second, Style::new().yellow().underlined()));
-			} else {
-				let (first, second) = second.split_at(1);
-				spans.push(Span::styled(first, Style::new().yellow().underlined()));
-				spans.push(Span::styled(second, Style::new().yellow()));
-			}
-			Paragraph::new(ratatui::text::Line::from(spans))
-		} else {
-			Paragraph::new(Span::styled(label, Style::new().yellow().underlined()))
-		}
+		Paragraph::new(button.clone())
 	}
 }
 
@@ -305,5 +355,20 @@ impl StatefulWidget for ConfirmDialog {
 
 			yes_button.render(buttons_layout[1], buf);
 		}
+	}
+}
+
+impl Display for TryFromSliceError {
+	#[inline]
+	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+		#[allow(deprecated)]
+		self.description().fmt(f)
+	}
+}
+
+impl Error for TryFromSliceError {
+	#[allow(deprecated)]
+	fn description(&self) -> &str {
+		"could not convert slice to array"
 	}
 }

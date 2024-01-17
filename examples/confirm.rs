@@ -80,8 +80,8 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, mut app: App) -> io::Result<(
 								Line::from("Are you sure you want to delete all files?"),
 								Line::from("This action cannot be undone."),
 							]))
-							.with_yes_button(ButtonLabel::new("Yes", 'y'))
-							.with_no_button(ButtonLabel::new("No!", 'n'))
+							.with_yes_button(ButtonLabel::from("(Y)es").unwrap().with_style(Style::new().bold().yellow()))
+							.with_no_button(ButtonLabel::NO.clone())
 							.with_listener(Some(app.popup_tx.clone()));
 						app.confirm_popup = app.confirm_popup.open();
 					}
