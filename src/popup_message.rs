@@ -101,8 +101,6 @@ impl Widget for PopupMessage<'_, '_> {
 			height = height.saturating_add(1);
 		}
 
-		println!("height: {height}");
-
 		let paragraph = Paragraph::new(self.message)
 			.style(self.text_style)
 			.alignment(self.text_alignment)
