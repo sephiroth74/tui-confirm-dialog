@@ -315,7 +315,7 @@ impl StatefulWidget for ConfirmDialog {
 
 		let centered_area = super::helper::centered_rect_with_size(width, height, area);
 
-		let main_layout = Layout::new()
+		let main_layout = Layout::default()
 			.direction(Direction::Vertical)
 			.constraints(&[
 				Constraint::Min(1),
@@ -327,7 +327,7 @@ impl StatefulWidget for ConfirmDialog {
 		text_widget.render(main_layout[0], buf);
 		block.render(centered_area, buf);
 
-		let buttons_layout = Layout::new().direction(Direction::Horizontal);
+		let buttons_layout = Layout::default().direction(Direction::Horizontal);
 
 		if let Some(no_button) = no_button {
 			let c = (main_layout[1].width - (yes_button_size + no_button_size)) / 2; // 19
