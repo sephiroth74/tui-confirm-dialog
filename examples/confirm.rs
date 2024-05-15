@@ -74,14 +74,15 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, mut app: App) -> io::Result<(
 					KeyCode::Char('p') => {
 						app.confirm_popup = app
 							.confirm_popup
-							.modal(true)
+							.modal(false)
 							.with_title(Span::styled(" Please Select ", Style::new().bold().cyan()))
 							.with_text(Text::from(vec![
 								Line::from("Are you sure you want to delete all files?"),
 								Line::from("This action cannot be undone."),
 							]))
-							.with_yes_button(ButtonLabel::from("(Y)es").unwrap().with_style(Style::new().bold().yellow()))
+							.with_yes_button(ButtonLabel::from("(Y)es").unwrap())
 							.with_no_button(ButtonLabel::NO.clone())
+							.with_yes_button_selected(false)
 							.with_listener(Some(app.popup_tx.clone()));
 						app.confirm_popup = app.confirm_popup.open();
 					}
@@ -124,7 +125,9 @@ fn ui(f: &mut Frame, app: &mut App) {
 		let popup = ConfirmDialog::default()
 			.borders(Borders::ALL)
 			.bg(Color::Black)
-			.border_type(BorderType::Rounded);
+			.border_type(BorderType::Rounded)
+			.button_style(Style::default())
+			.selected_button_style(Style::default().yellow().underlined().bold());
 		f.render_stateful_widget(popup, area, &mut app.confirm_popup);
 	}
 }

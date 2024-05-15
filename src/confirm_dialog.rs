@@ -22,13 +22,13 @@ impl ButtonLabel {
 	pub const YES: Lazy<ButtonLabel> = Lazy::new(|| ButtonLabel {
 		label: "(Y)es".to_string(),
 		control: 'y',
-		style: Style::new().yellow(),
+		style: None,
 	});
 
 	pub const NO: Lazy<ButtonLabel> = Lazy::new(|| ButtonLabel {
 		label: "(N)o".to_string(),
 		control: 'n',
-		style: Style::default(),
+		style: None,
 	});
 
 	pub fn new<S>(label: S, control: char) -> Self
@@ -38,7 +38,7 @@ impl ButtonLabel {
 		ButtonLabel {
 			label: label.into(),
 			control,
-			style: Style::default(),
+			style: None,
 		}
 	}
 
@@ -53,7 +53,7 @@ impl ButtonLabel {
 		self.label.len() + 2
 	}
 
-	pub fn with_style(mut self, style: Style) -> Self {
+	pub(crate) fn with_style(mut self, style: Option<Style>) -> Self {
 		self.style = style;
 		self
 	}
@@ -76,7 +76,7 @@ impl TryFrom<&str> for ButtonLabel {
 			Ok(ButtonLabel {
 				label: value.to_string(),
 				control: control_char.to_ascii_lowercase(),
-				style: Style::default(),
+				style: None,
 			})
 		} else {
 			let char = value.chars().nth(0).unwrap();
@@ -85,7 +85,7 @@ impl TryFrom<&str> for ButtonLabel {
 			Ok(ButtonLabel {
 				label,
 				control: char.to_ascii_lowercase(),
-				style: Style::default(),
+				style: None,
 			})
 		}
 	}
@@ -93,7 +93,14 @@ impl TryFrom<&str> for ButtonLabel {
 
 impl<'a> Into<Text<'a>> for ButtonLabel {
 	fn into(self) -> Text<'a> {
-		Text::styled(self.label, self.style)
+		Text::styled(self.label, self.style.unwrap_or(Style::default()))
+	}
+}
+
+impl PartialEq for ButtonLabel {
+	fn eq(&self, other: &Self) -> bool {
+		eprintln!("self: {:?}, other: {:?}", self, other);
+		self.control == other.control && self.label == other.label
 	}
 }
 
@@ -103,6 +110,9 @@ impl ConfirmDialogState {
 		T: Into<Title<'static>>,
 		R: Into<Text<'static>>,
 	{
+		let yes_button = ButtonLabel::new("Yes", 'y');
+		let no_button = ButtonLabel::new("No", 'n');
+
 		ConfirmDialogState {
 			id,
 			title: title.into(),
@@ -110,26 +120,31 @@ impl ConfirmDialogState {
 			modal: false,
 			opened: false,
 			listener: None,
-			yes_button: ButtonLabel::new("Yes", 'y'),
-			no_button: Some(ButtonLabel::new("No", 'n')),
+			yes_selected: true,
+			yes_button,
+			no_button: Some(no_button),
 		}
 	}
 
+	/// Open the dialog
 	pub fn open(mut self) -> Self {
 		self.opened = true;
 		self
 	}
 
+	/// Close the dialog
 	pub fn close(mut self) -> Self {
 		self.opened = false;
 		self
 	}
 
+	/// Set the dialog as modal
 	pub fn modal(mut self, value: bool) -> Self {
 		self.modal = value;
 		self
 	}
 
+	/// Set the dialog title
 	pub fn with_title<T>(mut self, title: T) -> Self
 	where
 		T: Into<Title<'static>>,
@@ -138,6 +153,7 @@ impl ConfirmDialogState {
 		self
 	}
 
+	/// Set the dialog message
 	pub fn with_text<T>(mut self, text: T) -> Self
 	where
 		T: Into<Text<'static>>,
@@ -146,11 +162,13 @@ impl ConfirmDialogState {
 		self
 	}
 
+	/// Set the dialog listener
 	pub fn with_listener(mut self, listener: Option<Sender<Listener>>) -> Self {
 		self.listener = listener;
 		self
 	}
 
+	/// Set the dialog `yes` button
 	pub fn with_yes_button<B>(mut self, label: B) -> Self
 	where
 		B: Into<ButtonLabel>,
@@ -159,6 +177,7 @@ impl ConfirmDialogState {
 		self
 	}
 
+	/// Set the dialog `no` button
 	pub fn with_no_button<B>(mut self, label: B) -> Self
 	where
 		B: Into<ButtonLabel>,
@@ -167,16 +186,25 @@ impl ConfirmDialogState {
 		self
 	}
 
+	/// Remove the `no` button
 	pub fn without_no_button(mut self) -> Self {
 		self.no_button = None;
 		self
 	}
 
+	/// Set the selected button to Yes or No
+	pub fn with_yes_button_selected(mut self, selected: bool) -> Self {
+		self.yes_selected = selected;
+		self
+	}
+
+	/// Check if the dialog is opened
 	pub fn is_opened(&self) -> bool {
 		self.opened
 	}
 
 	#[cfg(feature = "crossterm")]
+	/// Handle the dialog events
 	pub fn handle(&mut self, event: KeyEvent) -> bool {
 		if event.kind == KeyEventKind::Press {
 			match event.code {
@@ -189,6 +217,7 @@ impl ConfirmDialogState {
 						false
 					}
 				}
+
 				KeyCode::Char(chr) => {
 					if chr == self.yes_button.control {
 						self.opened = false;
@@ -205,6 +234,36 @@ impl ConfirmDialogState {
 					}
 					self.modal
 				}
+
+				KeyCode::Right => {
+					if let Some(_no_button) = &self.no_button {
+						if self.yes_selected {
+							self.yes_selected = false;
+						}
+					}
+					self.modal
+				}
+
+				KeyCode::Left => {
+					if let Some(_no_button) = &self.no_button {
+						if !self.yes_selected {
+							self.yes_selected = true;
+						}
+					}
+					self.modal
+				}
+
+				KeyCode::Enter => {
+					if self.yes_selected {
+						self.opened = false;
+						self.send_close_message(Some(true));
+					} else {
+						self.opened = false;
+						self.send_close_message(Some(false));
+					}
+					true
+				}
+
 				_ => self.modal,
 			}
 		} else {
@@ -219,6 +278,12 @@ impl ConfirmDialogState {
 	}
 }
 
+impl Default for ConfirmDialog {
+	fn default() -> Self {
+		ConfirmDialog::new()
+	}
+}
+
 impl ConfirmDialog {
 	pub fn new() -> Self {
 		ConfirmDialog {
@@ -226,31 +291,49 @@ impl ConfirmDialog {
 			borders: Default::default(),
 			border_type: Default::default(),
 			border_style: Default::default(),
+			button_style: Style::new(),
+			selected_button_style: Style::new().underlined(),
 		}
 	}
 
+	/// Set the dialog background color
 	pub fn bg(mut self, color: Color) -> Self {
 		self.bg = color;
 		self
 	}
 
+	/// Set the dialog borders
 	pub fn borders(mut self, borders: Borders) -> Self {
 		self.borders = borders;
 		self
 	}
 
+	/// Set the dialog border type
 	pub fn border_type(mut self, border_type: BorderType) -> Self {
 		self.border_type = border_type;
 		self
 	}
 
+	/// Set the dialog border style
 	pub fn border_style(mut self, border_style: Style) -> Self {
 		self.border_style = border_style;
 		self
 	}
 
-	fn button_paragraph(button: &ButtonLabel) -> Paragraph {
-		Paragraph::new(button.clone())
+	/// Set the dialog button style
+	pub fn button_style(mut self, button_style: Style) -> Self {
+		self.button_style = button_style;
+		self
+	}
+
+	/// Set the dialog selected button style
+	pub fn selected_button_style(mut self, selected_button_style: Style) -> Self {
+		self.selected_button_style = selected_button_style;
+		self
+	}
+
+	fn button_paragraph(button: &ButtonLabel, style: Style) -> Paragraph {
+		Paragraph::new(button.clone().with_style(Some(style)))
 	}
 }
 
@@ -276,13 +359,29 @@ impl StatefulWidget for ConfirmDialog {
 			.border_style(self.border_style)
 			.bg(self.bg);
 
-		let yes_button = Self::button_paragraph(&state.yes_button);
+		let yes_selected = state.yes_selected || state.no_button.is_none();
+
+		let yes_button = Self::button_paragraph(
+			&state.yes_button,
+			if yes_selected {
+				self.selected_button_style.clone()
+			} else {
+				self.button_style.clone()
+			},
+		);
 		let yes_button_size = (state.yes_button.len() + buttons_padding as usize) as u16;
 		let mut no_button_size = 0u16;
 
 		let no_button = if let Some(no_button) = &state.no_button {
 			no_button_size = (no_button.len() + buttons_padding as usize) as u16;
-			Some(Self::button_paragraph(no_button))
+			Some(Self::button_paragraph(
+				no_button,
+				if !yes_selected {
+					self.selected_button_style.clone()
+				} else {
+					self.button_style.clone()
+				},
+			))
 		} else {
 			None
 		};

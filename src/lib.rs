@@ -1,8 +1,8 @@
 #![doc = include_str!("../README.md")]
 
-use ratatui::layout::Alignment;
 use std::sync::mpsc::Sender;
 
+use ratatui::layout::Alignment;
 use ratatui::style::{Color, Style};
 use ratatui::text::Text;
 use ratatui::widgets::block::Title;
@@ -22,7 +22,7 @@ pub struct TryFromSliceError;
 pub struct ButtonLabel {
 	pub(crate) label: String,
 	pub(crate) control: char,
-	pub(crate) style: Style,
+	pub(crate) style: Option<Style>,
 }
 
 #[derive(Debug)]
@@ -32,17 +32,20 @@ pub struct ConfirmDialogState {
 	pub(crate) text: Text<'static>,
 	pub(crate) modal: bool,
 	pub(crate) opened: bool,
+	pub(crate) yes_selected: bool,
 	pub(crate) yes_button: ButtonLabel,
 	pub(crate) no_button: Option<ButtonLabel>,
 	pub(crate) listener: Option<Sender<Listener>>,
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct ConfirmDialog {
 	pub(crate) bg: Color,
 	pub(crate) borders: Borders,
 	pub(crate) border_type: BorderType,
 	pub(crate) border_style: Style,
+	pub(crate) button_style: Style,
+	pub(crate) selected_button_style: Style,
 }
 
 #[derive(Debug, Default)]
