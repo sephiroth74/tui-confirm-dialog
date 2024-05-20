@@ -81,6 +81,7 @@ impl Widget for PopupMessage<'_, '_> {
 			.title_alignment(self.title_alignment)
 			.borders(self.borders)
 			.border_type(self.border_type)
+			.border_style(self.border_style)
 			.padding(self.padding)
 			.bg(self.bg);
 
