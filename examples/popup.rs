@@ -101,7 +101,8 @@ fn ui(f: &mut Frame, app: &mut App) {
 		.text_style(Style::new().black())
 		.bg(Color::Yellow)
 		.borders(Borders::ALL)
-		.border_type(BorderType::Thick);
+		.border_type(BorderType::Rounded)
+		.border_style(Style::new().fg(Color::Red));
 		f.render_widget(popup, area);
 	}
 }
