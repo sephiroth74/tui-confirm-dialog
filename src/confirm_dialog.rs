@@ -2,11 +2,10 @@ use core::fmt;
 use std::error::Error;
 use std::fmt::Display;
 use std::sync::mpsc::Sender;
+use std::sync::LazyLock;
 
 #[cfg(feature = "crossterm")]
 use crossterm::event::{KeyCode, KeyEvent, KeyEventKind};
-use lazy_static::lazy_static;
-use once_cell::sync::Lazy;
 use rand::random;
 use ratatui::buffer::Buffer;
 use ratatui::layout::{Alignment, Constraint, Layout, Rect};
@@ -18,14 +17,16 @@ use regex::Regex;
 
 use crate::{ButtonLabel, ConfirmDialog, ConfirmDialogState, Listener, TryFromSliceError};
 
+static BUTTON_LABEL_RE: LazyLock<Regex> = LazyLock::new(||Regex::new(r#"(\(\w\))"#).unwrap());
+
 impl ButtonLabel {
-	pub const YES: Lazy<ButtonLabel> = Lazy::new(|| ButtonLabel {
+	pub const YES: LazyLock<ButtonLabel> = LazyLock::new(|| ButtonLabel {
 		label: "(Y)es".to_string(),
 		control: 'y',
 		style: None,
 	});
 
-	pub const NO: Lazy<ButtonLabel> = Lazy::new(|| ButtonLabel {
+	pub const NO: LazyLock<ButtonLabel> = LazyLock::new(|| ButtonLabel {
 		label: "(N)o".to_string(),
 		control: 'n',
 		style: None,
@@ -67,11 +68,7 @@ impl TryFrom<&str> for ButtonLabel {
 			return Err(TryFromSliceError);
 		}
 
-		lazy_static! {
-			static ref RE: Regex = Regex::new(r#"(\(\w\))"#).unwrap();
-		}
-
-		if let Some(result) = RE.find(value) {
+		if let Some(result) = BUTTON_LABEL_RE.find(value) {
 			let control_char = value.chars().nth(result.start() + 1).unwrap();
 			Ok(ButtonLabel {
 				label: value.to_string(),
