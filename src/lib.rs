@@ -46,6 +46,7 @@ pub struct ConfirmDialog {
 	pub(crate) border_style: Style,
 	pub(crate) button_style: Style,
 	pub(crate) selected_button_style: Style,
+	pub(crate) text_style: Style,
 }
 
 #[derive(Debug, Default)]

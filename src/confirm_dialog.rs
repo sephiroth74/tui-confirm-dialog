@@ -290,6 +290,7 @@ impl ConfirmDialog {
 			border_style: Default::default(),
 			button_style: Style::new(),
 			selected_button_style: Style::new().underlined(),
+			text_style: Style::new().white(),
 		}
 	}
 
@@ -326,6 +327,12 @@ impl ConfirmDialog {
 	/// Set the dialog selected button style
 	pub fn selected_button_style(mut self, selected_button_style: Style) -> Self {
 		self.selected_button_style = selected_button_style;
+		self
+	}
+
+    /// Set the dialog text style
+	pub fn text_style(mut self, text_style: Style) -> Self {
+		self.text_style = text_style;
 		self
 	}
 
@@ -406,7 +413,7 @@ impl StatefulWidget for ConfirmDialog {
 				vertical_padding,
 				vertical_padding,
 			)))
-			.style(Style::new().white())
+			.style(self.text_style)
 			.wrap(Wrap { trim: true });
 
 		let centered_area = super::helper::centered_rect_with_size(width, height, area);
