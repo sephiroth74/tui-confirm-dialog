@@ -4,10 +4,10 @@ use std::fmt::Display;
 use std::sync::mpsc::Sender;
 use std::sync::LazyLock;
 
-#[cfg(feature = "crossterm")]
-use crossterm::event::{KeyCode, KeyEvent, KeyEventKind};
 use rand::random;
 use ratatui::buffer::Buffer;
+#[cfg(feature = "crossterm")]
+use ratatui::crossterm::event::{KeyCode, KeyEvent, KeyEventKind};
 use ratatui::layout::{Alignment, Constraint, Layout, Rect};
 use ratatui::prelude::{Direction, Style, Text};
 use ratatui::style::{Color, Stylize};

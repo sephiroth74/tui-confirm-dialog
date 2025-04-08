@@ -1,6 +1,6 @@
 use std::{error::Error, io};
 
-use crossterm::{
+use ratatui::crossterm::{
     event::{self, Event, KeyCode, KeyEventKind},
     execute,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},

@@ -1,6 +1,6 @@
 use std::{error::Error, io};
 
-use crossterm::{
+use ratatui::crossterm::{
     event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode, KeyEventKind},
     execute,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
@@ -76,8 +76,7 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, mut app: App) -> io::Result<(
                 match key.code {
                     KeyCode::Char('q') => return Ok(()),
                     KeyCode::Char('p') => {
-                        app
-                            .confirm_popup
+                        app.confirm_popup
                             .modal(false)
                             .with_title(Span::styled(" Please Select ", Style::new().bold().cyan()))
                             .with_text(Text::from(vec![
