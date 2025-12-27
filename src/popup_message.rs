@@ -1,9 +1,13 @@
-use ratatui::buffer::Buffer;
-use ratatui::layout::{Alignment, Rect};
-use ratatui::prelude::{Color, Style};
-use ratatui::style::Stylize;
-use ratatui::text::{Line, Text};
-use ratatui::widgets::{Block, BorderType, Borders, Clear, Padding, Paragraph, Widget};
+use ratatui_core::buffer::Buffer;
+use ratatui_core::layout::{Alignment, Rect};
+use ratatui_core::style::Stylize;
+use ratatui_core::style::{Color, Style};
+use ratatui_core::text::{Line, Text};
+use ratatui_core::widgets::Widget;
+use ratatui_widgets::block::{Block, Padding};
+use ratatui_widgets::borders::{BorderType, Borders};
+use ratatui_widgets::clear::Clear;
+use ratatui_widgets::paragraph::Paragraph;
 
 use crate::PopupMessage;
 

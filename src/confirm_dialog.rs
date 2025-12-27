@@ -5,16 +5,17 @@ use std::sync::mpsc::Sender;
 use std::sync::LazyLock;
 
 use rand::random;
-use ratatui::buffer::Buffer;
 #[cfg(feature = "crossterm")]
 use ratatui::crossterm::event::{KeyCode, KeyEvent, KeyEventKind};
-use ratatui::layout::{Alignment, Constraint, Layout, Rect};
-use ratatui::prelude::{Direction, Style, Text};
-use ratatui::style::{Color, Stylize};
-use ratatui::text::Line;
-use ratatui::widgets::{
-    Block, BorderType, Borders, Clear, Padding, Paragraph, StatefulWidget, Widget, Wrap,
-};
+use ratatui_core::buffer::Buffer;
+use ratatui_core::layout::{Alignment, Constraint, Direction, Layout, Rect};
+use ratatui_core::style::{Color, Style, Stylize};
+use ratatui_core::text::{Line, Text};
+use ratatui_core::widgets::{StatefulWidget, Widget};
+use ratatui_widgets::block::{Block, Padding};
+use ratatui_widgets::borders::{BorderType, Borders};
+use ratatui_widgets::clear::Clear;
+use ratatui_widgets::paragraph::{Paragraph, Wrap};
 use regex::Regex;
 
 use crate::{ButtonLabel, ConfirmDialog, ConfirmDialogState, Listener, TryFromSliceError};
