@@ -4,8 +4,7 @@ use std::sync::mpsc::Sender;
 
 use ratatui::layout::Alignment;
 use ratatui::style::{Color, Style};
-use ratatui::text::Text;
-use ratatui::widgets::block::Title;
+use ratatui::text::{Line, Text};
 use ratatui::widgets::{BorderType, Borders, Padding};
 
 mod confirm_dialog;
@@ -28,7 +27,7 @@ pub struct ButtonLabel {
 #[derive(Debug, Clone)]
 pub struct ConfirmDialogState {
     pub id: u16,
-    pub(crate) title: Title<'static>,
+    pub(crate) title: Line<'static>,
     pub(crate) text: Text<'static>,
     pub(crate) modal: bool,
     pub(crate) opened: bool,
@@ -59,6 +58,6 @@ pub struct PopupMessage<'a, 'b> {
     pub(crate) title_alignment: Alignment,
     pub(crate) text_style: Style,
     pub(crate) padding: Padding,
-    pub(crate) title: Title<'a>,
+    pub(crate) title: Line<'a>,
     pub(crate) message: Text<'b>,
 }

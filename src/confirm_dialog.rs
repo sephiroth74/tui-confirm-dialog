@@ -11,7 +11,7 @@ use ratatui::crossterm::event::{KeyCode, KeyEvent, KeyEventKind};
 use ratatui::layout::{Alignment, Constraint, Layout, Rect};
 use ratatui::prelude::{Direction, Style, Text};
 use ratatui::style::{Color, Stylize};
-use ratatui::widgets::block::Title;
+use ratatui::text::Line;
 use ratatui::widgets::{
     Block, BorderType, Borders, Clear, Padding, Paragraph, StatefulWidget, Widget, Wrap,
 };
@@ -106,7 +106,7 @@ impl PartialEq for ButtonLabel {
 impl ConfirmDialogState {
     pub fn new<T, R>(id: u16, title: T, text: R) -> Self
     where
-        T: Into<Title<'static>>,
+        T: Into<Line<'static>>,
         R: Into<Text<'static>>,
     {
         let yes_button = ButtonLabel::new("Yes", 'y');
@@ -148,7 +148,7 @@ impl ConfirmDialogState {
     /// Set the dialog title
     pub fn with_title<T>(&mut self, title: T) -> &mut Self
     where
-        T: Into<Title<'static>>,
+        T: Into<Line<'static>>,
     {
         self.title = title.into();
         self
@@ -340,14 +340,14 @@ impl ConfirmDialog {
         self
     }
 
-    fn button_paragraph(button: &ButtonLabel, style: Style) -> Paragraph {
+    fn button_paragraph(button: &'_ ButtonLabel, style: Style) -> Paragraph<'_> {
         Paragraph::new(button.clone().with_style(Some(style)))
     }
 }
 
 impl Default for ConfirmDialogState {
     fn default() -> Self {
-        ConfirmDialogState::new(random(), Title::default(), Text::default())
+        ConfirmDialogState::new(random(), Line::default(), Text::default())
     }
 }
 
@@ -394,7 +394,7 @@ impl StatefulWidget for ConfirmDialog {
             None
         };
 
-        let min_width: u16 = ((yes_button_size + no_button_size) + horizontal_padding * 2) as u16;
+        let min_width: u16 = (yes_button_size + no_button_size) + horizontal_padding * 2;
         let text = state.text.clone();
 
         let mut width = text

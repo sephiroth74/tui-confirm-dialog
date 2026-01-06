@@ -65,7 +65,7 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, mut app: App) -> io::Result<(
             }
         }
 
-        terminal.draw(|f| ui(f, &mut app))?;
+        terminal.draw(|f| ui(f, &mut app)).expect("panic message");
 
         if let Event::Key(key) = event::read()? {
             if app.confirm_popup.is_opened() && app.confirm_popup.handle(&key) {

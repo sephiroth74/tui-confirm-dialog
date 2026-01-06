@@ -2,8 +2,7 @@ use ratatui::buffer::Buffer;
 use ratatui::layout::{Alignment, Rect};
 use ratatui::prelude::{Color, Style};
 use ratatui::style::Stylize;
-use ratatui::text::Text;
-use ratatui::widgets::block::Title;
+use ratatui::text::{Line, Text};
 use ratatui::widgets::{Block, BorderType, Borders, Clear, Padding, Paragraph, Widget};
 
 use crate::PopupMessage;
@@ -11,7 +10,7 @@ use crate::PopupMessage;
 impl<'a, 'b> PopupMessage<'a, 'b> {
     pub fn new<T, M>(title: T, message: M) -> Self
     where
-        T: Into<Title<'a>>,
+        T: Into<Line<'a>>,
         M: Into<Text<'b>>,
     {
         PopupMessage {
