@@ -2,10 +2,11 @@
 
 use std::sync::mpsc::Sender;
 
-use ratatui::layout::Alignment;
-use ratatui::style::{Color, Style};
-use ratatui::text::{Line, Text};
-use ratatui::widgets::{BorderType, Borders, Padding};
+use ratatui_core::layout::Alignment;
+use ratatui_core::style::{Color, Style};
+use ratatui_core::text::{Line, Text};
+use ratatui_widgets::block::Padding;
+use ratatui_widgets::borders::{BorderType, Borders};
 
 mod confirm_dialog;
 pub mod helper;

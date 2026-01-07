@@ -3,7 +3,6 @@ use std::{error::Error, io};
 use ratatui::crossterm::{
     event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode, KeyEventKind},
     execute,
-    terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
 use ratatui::text::{Line, Span};
 use ratatui::{prelude::*, widgets::*};
@@ -30,25 +29,9 @@ impl App {
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
-    // setup terminal
-    enable_raw_mode()?;
-    let mut stdout = io::stdout();
-    execute!(stdout, EnterAlternateScreen, EnableMouseCapture)?;
-    let backend = CrosstermBackend::new(stdout);
-    let mut terminal = Terminal::new(backend)?;
-
     // create app and run it
     let app = App::new();
-    let res = run_app(&mut terminal, app);
-
-    // restore terminal
-    disable_raw_mode()?;
-    execute!(
-        terminal.backend_mut(),
-        LeaveAlternateScreen,
-        DisableMouseCapture
-    )?;
-    terminal.show_cursor()?;
+    let res = run_app(app);
 
     if let Err(err) = res {
         println!("{err:?}");
@@ -57,43 +40,52 @@ fn main() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn run_app<B: Backend>(terminal: &mut Terminal<B>, mut app: App) -> io::Result<()> {
-    loop {
-        if let Ok(res) = app.popup_rx.try_recv() {
-            if res.0 == app.confirm_popup.id {
-                app.close_status = Some(format!("Dialog closed with result: {:?}", res.1));
-            }
-        }
-
-        terminal.draw(|f| ui(f, &mut app)).expect("panic message");
-
-        if let Event::Key(key) = event::read()? {
-            if app.confirm_popup.is_opened() && app.confirm_popup.handle(&key) {
-                continue;
+fn run_app(mut app: App) -> io::Result<()> {
+    ratatui::run(|terminal| {
+        execute!(terminal.backend_mut(), EnableMouseCapture)?;
+        loop {
+            if let Ok(res) = app.popup_rx.try_recv() {
+                if res.0 == app.confirm_popup.id {
+                    app.close_status = Some(format!("Dialog closed with result: {:?}", res.1));
+                }
             }
 
-            if key.kind == KeyEventKind::Press {
-                match key.code {
-                    KeyCode::Char('q') => return Ok(()),
-                    KeyCode::Char('p') => {
-                        app.confirm_popup
-                            .modal(false)
-                            .with_title(Span::styled(" Please Select ", Style::new().bold().cyan()))
-                            .with_text(Text::from(vec![
-                                Line::from("Are you sure you want to delete all files?"),
-                                Line::from("This action cannot be undone."),
-                            ]))
-                            .with_yes_button(ButtonLabel::from("(Y)es").unwrap())
-                            .with_no_button(ButtonLabel::NO.clone())
-                            .with_yes_button_selected(false)
-                            .with_listener(Some(app.popup_tx.clone()));
-                        app.confirm_popup.open();
+            terminal.draw(|f| ui(f, &mut app)).expect("panic message");
+
+            if let Event::Key(key) = event::read()? {
+                if app.confirm_popup.is_opened() && app.confirm_popup.handle(&key) {
+                    continue;
+                }
+
+                if key.kind == KeyEventKind::Press {
+                    match key.code {
+                        KeyCode::Char('q') => break,
+                        KeyCode::Char('p') => {
+                            app.confirm_popup
+                                .modal(false)
+                                .with_title(Span::styled(
+                                    " Please Select ",
+                                    Style::new().bold().cyan(),
+                                ))
+                                .with_text(Text::from(vec![
+                                    Line::from("Are you sure you want to delete all files?"),
+                                    Line::from("This action cannot be undone."),
+                                ]))
+                                .with_yes_button(ButtonLabel::from("(Y)es").unwrap())
+                                .with_no_button(ButtonLabel::NO.clone())
+                                .with_yes_button_selected(false)
+                                .with_listener(Some(app.popup_tx.clone()));
+                            app.confirm_popup.open();
+                        }
+                        _ => {}
                     }
-                    _ => {}
                 }
             }
         }
-    }
+        execute!(terminal.backend_mut(), DisableMouseCapture)?;
+
+        Ok(())
+    })
 }
 
 fn ui(f: &mut Frame, app: &mut App) {

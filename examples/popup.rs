@@ -1,10 +1,6 @@
 use std::{error::Error, io};
 
-use ratatui::crossterm::{
-    event::{self, Event, KeyCode, KeyEventKind},
-    execute,
-    terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
-};
+use ratatui::crossterm::event::{self, Event, KeyCode, KeyEventKind};
 use ratatui::text::Line;
 use ratatui::{prelude::*, widgets::*};
 
@@ -20,21 +16,9 @@ impl App {
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
-    // setup terminal
-    enable_raw_mode()?;
-    let mut stdout = io::stdout();
-    execute!(stdout, EnterAlternateScreen)?;
-    let backend = CrosstermBackend::new(stdout);
-    let mut terminal = Terminal::new(backend)?;
-
     // create app and run it
     let app = App::new();
-    let res = run_app(&mut terminal, app);
-
-    // restore terminal
-    disable_raw_mode()?;
-    execute!(terminal.backend_mut(), LeaveAlternateScreen)?;
-    terminal.show_cursor()?;
+    let res = run_app(app);
 
     if let Err(err) = res {
         println!("{err:?}");
@@ -43,20 +27,20 @@ fn main() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn run_app<B: Backend>(terminal: &mut Terminal<B>, mut app: App) -> io::Result<()> {
-    loop {
-        terminal.draw(|f| ui(f, &mut app)).expect("panic message");
+fn run_app(mut app: App) -> io::Result<()> {
+    ratatui::run(|terminal| loop {
+        terminal.draw(|f| ui(f, &mut app)).expect("panic message");;
 
         if let Event::Key(key) = event::read()? {
             if key.kind == KeyEventKind::Press {
                 match key.code {
-                    KeyCode::Char('q') => return Ok(()),
+                    KeyCode::Char('q') => break Ok(()),
                     KeyCode::Char('p') => app.popup_opened = !app.popup_opened,
                     _ => {}
                 }
             }
         }
-    }
+    })
 }
 
 fn ui(f: &mut Frame, app: &mut App) {
