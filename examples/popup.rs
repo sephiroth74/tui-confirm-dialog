@@ -29,7 +29,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
 fn run_app(mut app: App) -> io::Result<()> {
     ratatui::run(|terminal| loop {
-        terminal.draw(|f| ui(f, &mut app)).expect("panic message");;
+        terminal.draw(|f| ui(f, &mut app)).expect("panic message");
 
         if let Event::Key(key) = event::read()? {
             if key.kind == KeyEventKind::Press {
